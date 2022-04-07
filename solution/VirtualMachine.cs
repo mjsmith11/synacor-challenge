@@ -7,6 +7,10 @@ public class VirtualMachine {
 
     enum OpCode : ushort {
         halt = 0,
+        set = 1,
+        jmp = 6,
+        jt = 7,
+        jf = 8,
         output = 19,
         noop = 21
     }
@@ -16,7 +20,7 @@ public class VirtualMachine {
         memory = new ushort[1];
         registers = new ushort[1];
         stack = new Stack<ushort>();
-        
+
         reset();
     }
 
@@ -45,6 +49,18 @@ public class VirtualMachine {
                 case OpCode.halt:
                     halt();
                     break;
+                case OpCode.set:
+                    set();
+                    break;
+                case OpCode.jmp:
+                    unconditionalJump();
+                    break;
+                case OpCode.jt:
+                    jumpIfTrue();
+                    break;
+                case OpCode.jf:
+                    jumpIfFalse();
+                    break;
                 case OpCode.output:
                     output();
                     break;
@@ -69,11 +85,44 @@ public class VirtualMachine {
         }
     }
 #region opcodes
-
+    //halt: 0
+    //  stop execution and terminate the program
     private void halt() {
         shouldHalt = true;
     }
-
+    //set: 1 a b
+    //  set register <a> to the value of <b>
+    private void set() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        writeRegister(getValue(b),a);
+    }
+    //jmp: 6 a
+    //  jump to <a>
+    private void unconditionalJump() {
+        ushort a = getMemoryValueAtPointer();
+        memPointer = getValue(a);
+    }
+    //jt: 7 a b
+    // if <a> is nonzero, jump to <b>
+    private void jumpIfTrue() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        if (getValue(a)!=0) {
+            memPointer = getValue(b);
+        }
+    }
+    //jf: 8 a b
+    //  if <a> is zero, jump to <b>
+    private void jumpIfFalse() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        if (getValue(a)==0) {
+            memPointer = getValue(b);
+        }
+    }
+    //out: 19 a
+    //    write the character represented by ascii code <a> to the terminal
     private void output() {
         ushort a = getMemoryValueAtPointer();
         char charToPrint = (char)getValue(a);
@@ -92,7 +141,7 @@ public class VirtualMachine {
             return number;
         }
         if (number < 32776) {
-            return registers[number - 32776];
+            return registers[number - 32768];
         }
         Console.WriteLine($"EXCEPTION: Invalid Number {number}");
         shouldHalt = true;
@@ -103,6 +152,10 @@ public class VirtualMachine {
         ushort value = memory[memPointer];
         memPointer++;
         return value;
+    }
+    //    - numbers 32768..32775 instead mean registers 0..7
+    private void writeRegister(ushort value, ushort regNumber) {
+        registers[regNumber - 32768] = value;
     }
 
     private void unknownOpcode(OpCode opcode) {

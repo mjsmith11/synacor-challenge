@@ -8,6 +8,7 @@ public class VirtualMachine {
     enum OpCode : ushort {
         halt = 0,
         set = 1,
+        eq = 4,
         jmp = 6,
         jt = 7,
         jf = 8,
@@ -52,6 +53,9 @@ public class VirtualMachine {
                     break;
                 case OpCode.set:
                     set();
+                    break;
+                case OpCode.eq:
+                    equal();
                     break;
                 case OpCode.jmp:
                     unconditionalJump();
@@ -101,6 +105,18 @@ public class VirtualMachine {
         ushort b = getMemoryValueAtPointer();
         writeRegister(getValue(b),a);
     }
+    //eq: 4 a b c
+    //  set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise
+    private void equal() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        if (getValue(b) == getValue(c)) {
+            writeRegister(1,a);
+        } else {
+            writeRegister(0,a);
+        }
+    }
     //jmp: 6 a
     //  jump to <a>
     private void unconditionalJump() {
@@ -131,7 +147,7 @@ public class VirtualMachine {
         ushort a = getMemoryValueAtPointer();
         ushort b = getMemoryValueAtPointer();
         ushort c = getMemoryValueAtPointer();
-        ushort sum = (ushort)(getValue(b) + getValue(c));
+        ushort sum = (ushort)(getValue(b) + getValue(c)); // overflow?
         sum %= 32768;
         writeRegister(sum,a);
     }

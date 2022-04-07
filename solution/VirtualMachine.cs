@@ -2,6 +2,7 @@ public class VirtualMachine {
     private ushort[] memory;
     private ushort[] registers;
     private Stack<ushort> stack;
+    private Queue<char> inputBuffer;
     private ushort memPointer;
     private bool shouldHalt;
 
@@ -26,6 +27,7 @@ public class VirtualMachine {
         call = 17,
         ret = 18,
         output = 19,
+        input = 20,
         noop = 21
     }
 
@@ -34,6 +36,7 @@ public class VirtualMachine {
         memory = new ushort[1];
         registers = new ushort[1];
         stack = new Stack<ushort>();
+        inputBuffer = new Queue<char>();
 
         reset();
     }
@@ -43,6 +46,7 @@ public class VirtualMachine {
         memory = new ushort[1];
         registers = new ushort[1];
         stack = new Stack<ushort>();
+        inputBuffer = new Queue<char>();
 
         reset();
         LoadProgramFromFile(filename);
@@ -54,6 +58,15 @@ public class VirtualMachine {
         stack = new Stack<ushort>();
         memPointer = 0;
         shouldHalt = false;
+        inputBuffer = new Queue<char>();
+    }
+    public void primeInputBuffer(List<string> inputs) {
+        foreach(string s in inputs) {
+            foreach(char c in s) {
+                inputBuffer.Enqueue(c);
+            }
+            inputBuffer.Enqueue('\n');
+        }
     }
 
     public void execute() {
@@ -119,6 +132,9 @@ public class VirtualMachine {
                     break;
                 case OpCode.output:
                     output();
+                    break;
+                case OpCode.input:
+                    input();
                     break;
                 case OpCode.noop:
                     break;
@@ -302,6 +318,15 @@ public class VirtualMachine {
             memPointer = stack.Pop();
         }
     }
+    //in: 20 a
+    //  read a character from the terminal and write its ascii code to <a>; it can be assumed that once input starts, it will continue until a newline is encountered; this means that you can safely read whole lines from the keyboard and trust that they will be fully read
+    private void input() {
+        if (inputBuffer.Count == 0) {
+            keyboardRead();
+        }
+        ushort a = getMemoryValueAtPointer();
+        writeRegister((ushort)inputBuffer.Dequeue(), a);
+    }
     //out: 19 a
     //    write the character represented by ascii code <a> to the terminal
     private void output() {
@@ -342,5 +367,14 @@ public class VirtualMachine {
     private void unknownOpcode(OpCode opcode) {
         Console.WriteLine($"EXCEPTION: Unknown opcode {opcode}");
         shouldHalt = true;
+    }
+
+    private void keyboardRead()
+    {
+        string input = Console.ReadLine();
+        foreach(char c in input){
+            inputBuffer.Enqueue(c);
+        }
+        inputBuffer.Enqueue('\n');
     }
 }

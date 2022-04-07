@@ -16,6 +16,7 @@ public class VirtualMachine {
         jt = 7,
         jf = 8,
         add = 9,
+        and = 12,
         output = 19,
         noop = 21
     }
@@ -80,6 +81,9 @@ public class VirtualMachine {
                     break;
                 case OpCode.add:
                     add();
+                    break;
+                case OpCode.and:
+                    and();
                     break;
                 case OpCode.output:
                     output();
@@ -190,6 +194,15 @@ public class VirtualMachine {
         ushort sum = (ushort)(getValue(b) + getValue(c)); // overflow?
         sum %= 32768;
         writeRegister(sum,a);
+    }
+    //and: 12 a b c
+    //  stores into <a> the bitwise and of <b> and <c>
+    private void and() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        ushort and = (ushort)(getValue(b) & getValue(c)); // casting issue?
+        writeRegister(and,a);
     }
     //out: 19 a
     //    write the character represented by ascii code <a> to the terminal

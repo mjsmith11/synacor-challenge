@@ -11,6 +11,7 @@ public class VirtualMachine {
         push = 2,
         pop = 3,
         eq = 4,
+        gt = 5,
         jmp = 6,
         jt = 7,
         jf = 8,
@@ -64,6 +65,9 @@ public class VirtualMachine {
                     break;
                 case OpCode.eq:
                     equal();
+                    break;
+                case OpCode.gt:
+                    greaterThan();
                     break;
                 case OpCode.jmp:
                     unconditionalJump();
@@ -136,6 +140,18 @@ public class VirtualMachine {
         ushort b = getMemoryValueAtPointer();
         ushort c = getMemoryValueAtPointer();
         if (getValue(b) == getValue(c)) {
+            writeRegister(1,a);
+        } else {
+            writeRegister(0,a);
+        }
+    }
+    //gt: 5 a b c
+    //  set <a> to 1 if <b> is greater than <c>; set it to 0 otherwise
+    private void greaterThan() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        if (getValue(b) > getValue(c)) {
             writeRegister(1,a);
         } else {
             writeRegister(0,a);

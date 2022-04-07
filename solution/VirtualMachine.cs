@@ -11,6 +11,7 @@ public class VirtualMachine {
         jmp = 6,
         jt = 7,
         jf = 8,
+        add = 9,
         output = 19,
         noop = 21
     }
@@ -60,6 +61,9 @@ public class VirtualMachine {
                     break;
                 case OpCode.jf:
                     jumpIfFalse();
+                    break;
+                case OpCode.add:
+                    add();
                     break;
                 case OpCode.output:
                     output();
@@ -120,6 +124,16 @@ public class VirtualMachine {
         if (getValue(a)==0) {
             memPointer = getValue(b);
         }
+    }
+    //add: 9 a b c
+    //  assign into <a> the sum of <b> and <c> (modulo 32768)
+    private void add() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        ushort sum = (ushort)(getValue(b) + getValue(c));
+        sum %= 32768;
+        writeRegister(sum,a);
     }
     //out: 19 a
     //    write the character represented by ascii code <a> to the terminal

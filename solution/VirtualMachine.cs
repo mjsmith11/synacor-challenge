@@ -16,7 +16,15 @@ public class VirtualMachine {
         jt = 7,
         jf = 8,
         add = 9,
+        mult = 10,
+        mod = 11,
         and = 12,
+        or = 13,
+        not = 14,
+        rmem = 15,
+        wmem = 16,
+        call = 17,
+        ret = 18,
         output = 19,
         noop = 21
     }
@@ -82,8 +90,32 @@ public class VirtualMachine {
                 case OpCode.add:
                     add();
                     break;
+                case OpCode.mult:
+                    multiply();
+                    break;
+                case OpCode.mod:
+                    modulo();
+                    break;
                 case OpCode.and:
                     and();
+                    break;
+                case OpCode.or:
+                    or();
+                    break;
+                case OpCode.not:
+                    not();
+                    break;
+                case OpCode.rmem:
+                    readMemory();
+                    break;
+                case OpCode.wmem:
+                    writeMemory();
+                    break;
+                case OpCode.call:
+                    call();
+                    break;
+                case OpCode.ret:
+                    ret();
                     break;
                 case OpCode.output:
                     output();
@@ -195,6 +227,24 @@ public class VirtualMachine {
         sum %= 32768;
         writeRegister(sum,a);
     }
+    //mult: 10 a b c
+    //  assign into <a> the product of <b> and <c> (modulo 32768)
+    private void multiply() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        ushort prod = (ushort)((getValue(b) * getValue(c))%32768); // overflow?
+        writeRegister(prod,a);
+    }
+    //mod: 11 a b c
+    //  assign into <a> the remainer of <b> divided by <c>
+    private void modulo() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        ushort mod = (ushort)(getValue(b) % getValue(c)); // overflow?
+        writeRegister(mod,a);
+    }
     //and: 12 a b c
     //  stores into <a> the bitwise and of <b> and <c>
     private void and() {
@@ -203,6 +253,54 @@ public class VirtualMachine {
         ushort c = getMemoryValueAtPointer();
         ushort and = (ushort)(getValue(b) & getValue(c)); // casting issue?
         writeRegister(and,a);
+    }
+    //or: 13 a b c
+    //  stores into <a> the bitwise or of <b> and <c>
+    private void or() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort c = getMemoryValueAtPointer();
+        ushort or = (ushort)(getValue(b) | getValue(c)); // casting issue?
+        writeRegister(or,a);
+    }
+    //not: 14 a b
+    //  stores 15-bit bitwise inverse of <b> in <a>
+    private void not() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        ushort not = (ushort)(getValue(b) ^ 0x7FFF); //use xor to flip all the bits except most significant since it specifies a 15 bit inverse
+        writeRegister(not,a);
+    }
+    //rmem: 15 a b
+    //  read memory at address <b> and write it to <a>
+    private void readMemory() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        writeRegister(memory[getValue(b)],a);
+    }
+    //wmem: 16 a b
+    //  write the value from <b> into memory at address <a>
+    private void writeMemory() {
+        ushort a = getMemoryValueAtPointer();
+        ushort b = getMemoryValueAtPointer();
+        memory[getValue(a)] = getValue(b);
+    }
+    //call: 17 a
+    //  write the address of the next instruction to the stack and jump to <a>
+    private void call() {
+        ushort a = getMemoryValueAtPointer();
+        stack.Push(memPointer);
+        memPointer = getValue(a);
+    }
+    //ret: 18
+    //  remove the top element from the stack and jump to it; empty stack = halt
+    private void ret()
+    {
+        if (stack.Count() == 0) {
+            shouldHalt = true;
+        } else {
+            memPointer = stack.Pop();
+        }
     }
     //out: 19 a
     //    write the character represented by ascii code <a> to the terminal

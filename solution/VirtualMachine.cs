@@ -8,6 +8,8 @@ public class VirtualMachine {
     enum OpCode : ushort {
         halt = 0,
         set = 1,
+        push = 2,
+        pop = 3,
         eq = 4,
         jmp = 6,
         jt = 7,
@@ -53,6 +55,12 @@ public class VirtualMachine {
                     break;
                 case OpCode.set:
                     set();
+                    break;
+                case OpCode.push:
+                    push();
+                    break;
+                case OpCode.pop:
+                    pop();
                     break;
                 case OpCode.eq:
                     equal();
@@ -104,6 +112,22 @@ public class VirtualMachine {
         ushort a = getMemoryValueAtPointer();
         ushort b = getMemoryValueAtPointer();
         writeRegister(getValue(b),a);
+    }
+    //push: 2 a
+    //  push <a> onto the stack
+    private void push() {
+        ushort a = getMemoryValueAtPointer();
+        stack.Push(getValue(a));
+    }
+    //pop: 3 a
+    //  remove the top element from the stack and write it into <a>; empty stack = error
+    private void pop() {
+        if (stack.Count() == 0) {
+            Console.WriteLine("EXCEPTION: Popping empty stack");
+        } else {
+            ushort a = getMemoryValueAtPointer();
+            writeRegister(stack.Pop(),a);
+        }
     }
     //eq: 4 a b c
     //  set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise

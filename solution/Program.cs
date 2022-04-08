@@ -96,9 +96,48 @@ static void solveDoor() {
     inputs.Add("up");
     inputs.Add("west");
 
-    VirtualMachine vm = new VirtualMachine("/work/problem-statement/challenge.bin");
+    VirtualMachine vm = new VirtualMachine("/work/problem-statement/challenge.bin",true);
     vm.primeInputBuffer(inputs);
     vm.execute(); 
+
+    // brute force the door
+    List<List<int>> coinPermutations = generatePermutations(new List<List<int>>(), new List<int>());
+    List<string> coins = new List<string>();
+    coins.Add("corroded coin");
+    coins.Add("concave coin");
+    coins.Add("red coin");
+    coins.Add("blue coin");
+    coins.Add("shiny coin");
+
+    foreach(List<int> perm in coinPermutations) {
+        inputs = new List<string>();
+        for(int i=0; i<5; i++) {
+            inputs.Add($"use {coins[perm[i]]}");
+        }
+        vm.primeInputBuffer(inputs);
+        vm.execute();
+        string output = vm.getOutput();
+        if (output.Contains("they are all released onto the floor")) {
+            // pick them up and get ready to try again
+            inputs = new List<string>();
+            for(int i=0; i<5; i++) {
+                inputs.Add($"take {coins[perm[i]]}");
+            }
+            vm.primeInputBuffer(inputs);
+            vm.execute();
+        } else {
+            //Found the answer. Return control to console
+            inputs = new List<string>();
+            inputs.Add("north");
+            inputs.Add("take teleporter");
+            inputs.Add("use teleporter");
+            vm.primeInputBuffer(inputs);
+            vm.execute();
+            Console.Write(vm.getOutput());
+            break;
+        }
+    }
+
 }
 // generate all permutations of 0, 1, 2, 3, 4
 static List<List<int>> generatePermutations(List<List<int>> workingList, List<int> workingPermutation) {

@@ -1,3 +1,5 @@
+using System.Text;
+
 public class VirtualMachine {
     private ushort[] memory;
     private ushort[] registers;
@@ -43,7 +45,7 @@ public class VirtualMachine {
         reset();
     }
 
-    public VirtualMachine(string filename, programaticIO = false) {
+    public VirtualMachine(string filename, bool programaticIO = false) {
         // these objects don't get used but they eliminate warnings about class members remaining null when the constructor exits.
         memory = new ushort[1];
         registers = new ushort[1];
@@ -63,7 +65,7 @@ public class VirtualMachine {
         inputBuffer = new Queue<char>();
     }
     public string getOutput() {
-        outputBuffer.ToString();
+        return outputBuffer.ToString();
     }
     public void primeInputBuffer(List<string> inputs) {
         foreach(string s in inputs) {
@@ -78,6 +80,7 @@ public class VirtualMachine {
         if(programaticIO) {
             outputBuffer = new StringBuilder();
         }
+        shouldHalt = false;
         while(!shouldHalt) {
             OpCode opcode = (OpCode)getMemoryValueAtPointer();
             switch(opcode) {

@@ -100,3 +100,18 @@ static void solveDoor() {
     vm.primeInputBuffer(inputs);
     vm.execute(); 
 }
+// generate all permutations of 0, 1, 2, 3, 4
+static List<List<int>> generatePermutations(List<List<int>> workingList, List<int> workingPermutation) {
+    if (workingPermutation.Count < 5) {
+        for(int i=0; i<5; i++) {
+            if(!workingPermutation.Contains(i)) {
+                List<int> newPerm = new List<int>(workingPermutation);
+                newPerm.Add(i);
+                generatePermutations(workingList,newPerm);
+            }
+        }
+    } else {
+        workingList.Add(workingPermutation);
+    }
+    return workingList;
+}

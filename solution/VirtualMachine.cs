@@ -5,6 +5,8 @@ public class VirtualMachine {
     private Queue<char> inputBuffer;
     private ushort memPointer;
     private bool shouldHalt;
+    public bool programaticIO;
+    private StringBuilder outputBuffer;
 
     enum OpCode : ushort {
         halt = 0,
@@ -37,17 +39,17 @@ public class VirtualMachine {
         registers = new ushort[1];
         stack = new Stack<ushort>();
         inputBuffer = new Queue<char>();
-
+        programaticIO = false;
         reset();
     }
 
-    public VirtualMachine(string filename) {
+    public VirtualMachine(string filename, programaticIO = false) {
         // these objects don't get used but they eliminate warnings about class members remaining null when the constructor exits.
         memory = new ushort[1];
         registers = new ushort[1];
         stack = new Stack<ushort>();
         inputBuffer = new Queue<char>();
-
+        this.programaticIO = programaticIO;
         reset();
         LoadProgramFromFile(filename);
     }
@@ -60,6 +62,9 @@ public class VirtualMachine {
         shouldHalt = false;
         inputBuffer = new Queue<char>();
     }
+    public string getOutput() {
+        outputBuffer.ToString();
+    }
     public void primeInputBuffer(List<string> inputs) {
         foreach(string s in inputs) {
             foreach(char c in s) {
@@ -70,6 +75,9 @@ public class VirtualMachine {
     }
 
     public void execute() {
+        if(programaticIO) {
+            outputBuffer = new StringBuilder();
+        }
         while(!shouldHalt) {
             OpCode opcode = (OpCode)getMemoryValueAtPointer();
             switch(opcode) {
@@ -322,7 +330,14 @@ public class VirtualMachine {
     //  read a character from the terminal and write its ascii code to <a>; it can be assumed that once input starts, it will continue until a newline is encountered; this means that you can safely read whole lines from the keyboard and trust that they will be fully read
     private void input() {
         if (inputBuffer.Count == 0) {
-            keyboardRead();
+            if (programaticIO) {
+                // code needs to give more input
+                memPointer--; // so we do the input again on restart
+                shouldHalt = true;
+                return;
+            } else {
+                keyboardRead();
+            }
         }
         ushort a = getMemoryValueAtPointer();
         writeRegister((ushort)inputBuffer.Dequeue(), a);
@@ -332,7 +347,11 @@ public class VirtualMachine {
     private void output() {
         ushort a = getMemoryValueAtPointer();
         char charToPrint = (char)getValue(a);
-        Console.Write(charToPrint);
+        if(programaticIO) {
+            outputBuffer.Append(charToPrint);
+        } else {
+            Console.Write(charToPrint);
+        }
     }
 
 #endregion

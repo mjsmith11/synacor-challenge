@@ -9,6 +9,7 @@ public class VirtualMachine {
     private bool shouldHalt;
     public bool programaticIO;
     private StringBuilder outputBuffer;
+    public bool hackTheReg;
 
     enum OpCode : ushort {
         halt = 0,
@@ -63,6 +64,7 @@ public class VirtualMachine {
         memPointer = 0;
         shouldHalt = false;
         inputBuffer = new Queue<char>();
+        hackTheReg = false;
     }
     public string getOutput() {
         return outputBuffer.ToString();
@@ -82,6 +84,13 @@ public class VirtualMachine {
         }
         shouldHalt = false;
         while(!shouldHalt) {
+            if (hackTheReg) {
+                if(memPointer == 5489) { //bypass the confirmation routine
+                    registers[0] = 6;
+                    memPointer = 5491;
+                    hackTheReg = false;
+                }
+            }
             OpCode opcode = (OpCode)getMemoryValueAtPointer();
             switch(opcode) {
                 case OpCode.halt:
@@ -166,6 +175,19 @@ public class VirtualMachine {
                 }
             }
         }
+    }
+
+    public void writeOutRegisters() {
+        for(int i=0; i<8; i++) {
+            Console.WriteLine($"Register {i} : {registers[i]}");
+        }
+    }
+    public void writeRegister7(ushort val) {
+        registers[7] = val;
+    }
+
+    public void setMemPointer(ushort val) {
+        memPointer = val;
     }
 #region opcodes
     //halt: 0
@@ -343,7 +365,11 @@ public class VirtualMachine {
             }
         }
         ushort a = getMemoryValueAtPointer();
-        writeRegister((ushort)inputBuffer.Dequeue(), a);
+        char c = inputBuffer.Dequeue();
+        if (hackTheReg && c == '\n') {
+            registers[7] = 25734; // to get the teleporter energy right
+        }
+        writeRegister((ushort)c, a);
     }
     //out: 19 a
     //    write the character represented by ascii code <a> to the terminal

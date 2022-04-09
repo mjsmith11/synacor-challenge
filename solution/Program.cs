@@ -12,7 +12,12 @@
 //findWallCode();
 
 // one code (6/8)
-solveDoor();
+//solveDoor();
+
+// one code (7/8)
+teleport();
+//ConfirmationBypasser c = new ConfirmationBypasser(); //25734
+//c.solveInThread();
 
 
 // boots and self tests the vm.  Could play manually with this
@@ -138,6 +143,72 @@ static void solveDoor() {
         }
     }
 
+}
+
+static void teleport() {
+    List<string> inputs = new List<string>();
+    inputs.Add("doorway");
+    inputs.Add("north");
+    inputs.Add("north");
+    inputs.Add("bridge");
+    inputs.Add("continue");
+    inputs.Add("down");
+    inputs.Add("east");
+    inputs.Add("take empty lantern");
+    inputs.Add("west");
+    inputs.Add("west");
+    inputs.Add("passage");
+    inputs.Add("ladder");
+    inputs.Add("west");
+    inputs.Add("south");
+    inputs.Add("north");
+    inputs.Add("take can");
+    inputs.Add("use can");
+    inputs.Add("use lantern");
+    inputs.Add("west");
+    inputs.Add("ladder");
+    inputs.Add("darkness");
+    inputs.Add("continue");
+    inputs.Add("west");
+    inputs.Add("west");
+    inputs.Add("west");
+    inputs.Add("west");
+    inputs.Add("north");
+    inputs.Add("take red coin");
+    inputs.Add("north");
+    inputs.Add("west");
+    inputs.Add("take blue coin");
+    inputs.Add("up");
+    inputs.Add("take shiny coin");
+    inputs.Add("down");
+    inputs.Add("east");
+    inputs.Add("east");
+    inputs.Add("take concave coin");
+    inputs.Add("down");
+    inputs.Add("take corroded coin");
+    inputs.Add("up");
+    inputs.Add("west");
+    // door solution
+    inputs.Add("use blue coin");
+    inputs.Add("use red coin");
+    inputs.Add("use shiny coin");
+    inputs.Add("use concave coin");
+    inputs.Add("use corroded coin");
+
+    inputs.Add("north");
+    inputs.Add("take teleporter");
+    inputs.Add("use teleporter");
+
+    VirtualMachine vm = new VirtualMachine("/work/problem-statement/challenge.bin",true);
+    vm.primeInputBuffer(inputs);
+    vm.execute(); 
+
+    inputs = new List<string>();
+    inputs.Add("use teleporter");
+    vm.hackTheReg = true;
+    vm.primeInputBuffer(inputs);
+    vm.execute();
+    Console.WriteLine(vm.getOutput());
 }
 // generate all permutations of 0, 1, 2, 3, 4
 static List<List<int>> generatePermutations(List<List<int>> workingList, List<int> workingPermutation) {
